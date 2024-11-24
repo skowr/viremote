@@ -66,7 +66,7 @@ void setup() {
   }
 
   timetowait = random(10,60*factor);
-  intprog = timetowait % 8;
+  intprog = random(8);
 
   if (DEBUG){    
     Serial.print("End Startup. Waiting ");
@@ -91,6 +91,7 @@ void setup() {
   {
 
     // SIGNAL
+    
     for (int i = 0; i <= intprog ;i++)
     {      
       blink();
@@ -101,10 +102,10 @@ void setup() {
       for (int i=0; i<PULSE_REPEATS; i++ ){
         trSend(bol1, sizeof(bol1));
         delayMicroseconds(6000);
-      }
-      
-      intprog = 0;
+      }      
     }
+    
+    intprog = random(8);
 
     // WAITING
     timetowait = random(5,30);
@@ -112,6 +113,8 @@ void setup() {
       Serial.print("Play! Waiting ");
       Serial.print(timetowait);
       Serial.println(" seconds");
+      Serial.print("Program jump: ");
+      Serial.println(intprog);      
     }
 
     delay(timetowait*1000);
