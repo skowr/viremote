@@ -6,23 +6,30 @@
 #include "config.h"
 
 
+bool bolInit[24];
+bool bolOn[144];
+bool bolOff[144];
+
+int counter;
+int timetowait;
+
+
 void setup() {                
 
   // CONFIGURATION
 
-  // return;
-
   pinMode(FS1000A_DATA_PIN, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
-  pinMode(BUTTON_PIN, INPUT);
+  pinMode(BUTTON_CONTROL_PIN, INPUT);
+  pinMode(BUTTON_OFF_PIN, INPUT);
 
-  bool bol0[strlen(sig0)*4];
-  bool bol1[strlen(sig1)*4];
-  bool bolPause[strlen(sigPause)*4];  
+  // bool bolInit[strlen(sigInit)*4];
+  // bool bolOn[strlen(sigOn)*4];
+  // bool bolOff[strlen(sigOff)*4];
 
-  hexStringToBooleanArray(sig0, bol0);
-  hexStringToBooleanArray(sig1, bol1);
-  hexStringToBooleanArray(sigPause, bolPause);
+  hexStringToBooleanArray(sigInit, bolInit);
+  hexStringToBooleanArray(sigOn, bolOn);
+  hexStringToBooleanArray(sigOff, bolOff);
 
   randomSeed(analogRead(A0));
 
@@ -33,20 +40,19 @@ void setup() {
   }
 
 
+
   // READ DELAY TIME
 
-  int counter = 0;
   int factor = 1;
   int buttonstate = 0;  
-  int timetowait;
   int intprog;
 
-  blink();
-  
+  blink(); 
 
+  counter = 0;
   while (counter < READ_PERIOD)
   {
-    int i = digitalRead(BUTTON_PIN);
+    int i = digitalRead(BUTTON_CONTROL_PIN);
 
     if (buttonstate != i)
     {
@@ -64,6 +70,8 @@ void setup() {
     delay(READ_FREQUENCY_PERIOD);
     counter += READ_FREQUENCY_PERIOD;
   }
+  
+  blink();
 
   timetowait = random(10,60*factor);
   intprog = random(8);
@@ -78,29 +86,33 @@ void setup() {
     Serial.println(intprog);
   }
 
-  blink();
   
-  delay(timetowait*1000);
+  delay(timetowait*1000UL);
 
   // PLAY
   if (DEBUG){
     Serial.println("End Waiting. Play");
   }
 
+  timetowait = 0;
+  counter = 0;
+
+
+/*
   while(true)
   {
 
     // SIGNAL
     
-    for (int i = 0; i <= intprog ;i++)
+    for (int j = 0; j <= intprog ;j++)
     {      
       blink();
 
-      trSend(bol0, sizeof(bol0));
+      trSend(bolInit, sizeof(bolInit));
       delayMicroseconds(6000);
 
       for (int i=0; i<PULSE_REPEATS; i++ ){
-        trSend(bol1, sizeof(bol1));
+        trSend(bolOn, sizeof(bolOn));
         delayMicroseconds(6000);
       }      
     }
@@ -108,7 +120,7 @@ void setup() {
     intprog = random(8);
 
     // WAITING
-    timetowait = random(5,30);
+    timetowait = random(5,60);
     if (DEBUG){    
       Serial.print("Play! Waiting ");
       Serial.print(timetowait);
@@ -117,11 +129,14 @@ void setup() {
       Serial.println(intprog);      
     }
 
-    delay(timetowait*1000);
+    delay(timetowait*1000UL);
+
     if (DEBUG){
       Serial.println("Change");
     }
   }
+
+ */
 }
 
 
@@ -171,14 +186,116 @@ void blink()
   for (int i = 0; i<5; i++)
   {
     digitalWrite(LED_BUILTIN, HIGH);
-    delay(50);
+    delay(25);
     digitalWrite(LED_BUILTIN, LOW);
-    delay(50);
+    delay(25);
   }
 }
 
-void loop() {
+void testButtons()
+{
 
-  // NOTHING HERE
+  int i = digitalRead(BUTTON_CONTROL_PIN);
+  int j = digitalRead(BUTTON_OFF_PIN);
+
+  Serial.print("State: ");
+  if (i == HIGH)
+    Serial.print("HIGH");
+  else
+    Serial.print("LOW");
+  Serial.print(" - ");
+
+  if (j == HIGH)
+    Serial.println("HIGH");
+  else
+    Serial.println("LOW") ;
+
+  delay(200);
+
+  blink();
+}
+
+
+void sendOn(int intprog)
+{
+  blink();
+
+
+    
+  for (int j = 0; j <= intprog ;j++)
+  {      
+    blink();
+
+    trSend(bolInit, sizeof(bolInit));
+    delayMicroseconds(6000);
+
+    for (int i=0; i<PULSE_REPEATS; i++ ){
+      trSend(bolOn, sizeof(bolOn));
+      delayMicroseconds(6000);
+    }      
+  }
+
+  blink();
+}
+
+void sendOff()
+{
+  blink();
+
+  trSend(bolInit, sizeof(bolInit));
+  delayMicroseconds(6000);
+
+  for (int i=0; i<PULSE_REPEATS; i++ ){
+    trSend(bolOff, sizeof(bolOff));
+    delayMicroseconds(6000);
+  }      
+}
+
+
+
+void loop() {
+  // testButtons();
+  
+  // Check buttons
+  int pinctrl = digitalRead(BUTTON_CONTROL_PIN);
+  int pinoff = digitalRead(BUTTON_OFF_PIN);
+
+
+  // Check the time
+  if (counter >= timetowait || pinctrl == HIGH)
+  {
+    if (DEBUG){
+      Serial.println("Change");
+    }
+    int intprog = random(8);
+    sendOn(intprog);
+    counter = 0;
+    // timetowait = random(5,60);
+    timetowait = random(2,5);
+    if (DEBUG){    
+      Serial.print("Play! Waiting ");
+      Serial.print(timetowait);
+      Serial.println(" seconds");
+      Serial.print("Program jump: ");
+      Serial.println(intprog);      
+    }
+  }
+
+
+  if (pinoff == HIGH)
+  {
+    sendOff();
+    if (DEBUG){
+      Serial.println("Turn Off");      
+    }
+    delay(3000UL);
+
+  }
+
+
+  delay(1000UL);
+  counter++;
+
+
 
 }
