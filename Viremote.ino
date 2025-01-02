@@ -6,6 +6,28 @@
 #include "config.h"
 
 
+/* 
+// example configuration for reference. Store usually in config.h
+#define  FS1000A_DATA_PIN    10
+#define  BUTTON_CONTROL_PIN  2
+#define  BUTTON_OFF_PIN      13
+
+#define  JAM_PULSE 100000
+#define  JAM_BLINK 1000000
+
+#define  PULSE_BIT 188 // microseconds
+#define  PULSE_REPEATS 30
+
+#define  READ_FREQUENCY_PERIOD 50
+#define  READ_PERIOD 5000
+
+#define  DEBUG 1
+
+char *sigInit  = ""; // secret
+char *sigOn    = ""; // secret
+char *sigOff   = ""; // secret
+*/
+
 bool bolInit[24];
 bool bolOn[144];
 bool bolOff[144];
@@ -23,10 +45,6 @@ void setup() {
   pinMode(BUTTON_CONTROL_PIN, INPUT);
   pinMode(BUTTON_OFF_PIN, INPUT);
 
-  // bool bolInit[strlen(sigInit)*4];
-  // bool bolOn[strlen(sigOn)*4];
-  // bool bolOff[strlen(sigOff)*4];
-
   hexStringToBooleanArray(sigInit, bolInit);
   hexStringToBooleanArray(sigOn, bolOn);
   hexStringToBooleanArray(sigOff, bolOff);
@@ -38,8 +56,6 @@ void setup() {
     Serial.begin(9600); 
     Serial.println("Startup");
   }
-
-
 
   // READ DELAY TIME
 
@@ -97,46 +113,6 @@ void setup() {
   timetowait = 0;
   counter = 0;
 
-
-/*
-  while(true)
-  {
-
-    // SIGNAL
-    
-    for (int j = 0; j <= intprog ;j++)
-    {      
-      blink();
-
-      trSend(bolInit, sizeof(bolInit));
-      delayMicroseconds(6000);
-
-      for (int i=0; i<PULSE_REPEATS; i++ ){
-        trSend(bolOn, sizeof(bolOn));
-        delayMicroseconds(6000);
-      }      
-    }
-    
-    intprog = random(8);
-
-    // WAITING
-    timetowait = random(5,60);
-    if (DEBUG){    
-      Serial.print("Play! Waiting ");
-      Serial.print(timetowait);
-      Serial.println(" seconds");
-      Serial.print("Program jump: ");
-      Serial.println(intprog);      
-    }
-
-    delay(timetowait*1000UL);
-
-    if (DEBUG){
-      Serial.println("Change");
-    }
-  }
-
- */
 }
 
 
@@ -198,12 +174,12 @@ void testButtons()
   int i = digitalRead(BUTTON_CONTROL_PIN);
   int j = digitalRead(BUTTON_OFF_PIN);
 
-  Serial.print("State: ");
+  Serial.print("Control: ");
   if (i == HIGH)
     Serial.print("HIGH");
   else
     Serial.print("LOW");
-  Serial.print(" - ");
+  Serial.print(" Off: ");
 
   if (j == HIGH)
     Serial.println("HIGH");
@@ -252,14 +228,16 @@ void sendOff()
 }
 
 
-
 void loop() {
   // testButtons();
-  
+  // return;
+ 
   // Check buttons
   int pinctrl = digitalRead(BUTTON_CONTROL_PIN);
   int pinoff = digitalRead(BUTTON_OFF_PIN);
 
+  // sendOn(1);
+  // return;
 
   // Check the time
   if (counter >= timetowait || pinctrl == HIGH)
@@ -268,10 +246,15 @@ void loop() {
       Serial.println("Change");
     }
     int intprog = random(8);
-    sendOn(intprog);
+
+    if (timetowait < 25)
+      sendOff();
+    else
+      sendOn(intprog);
+      
     counter = 0;
-    // timetowait = random(5,60);
-    timetowait = random(2,5);
+    timetowait = random(5,60);
+    // timetowait = random(2,5);
     if (DEBUG){    
       Serial.print("Play! Waiting ");
       Serial.print(timetowait);
