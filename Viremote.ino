@@ -5,7 +5,6 @@
 
 #include "config.h"
 
-
 /* 
 // example configuration for reference. Store usually in config.h
 #define  FS1000A_DATA_PIN    10
@@ -22,6 +21,7 @@
 #define  READ_PERIOD 5000
 
 #define  DEBUG 1
+#define  DEBUG_BUTTON_TEST 0
 
 char *sigInit  = ""; // secret
 char *sigOn    = ""; // secret
@@ -49,13 +49,17 @@ void setup() {
   hexStringToBooleanArray(sigOn, bolOn);
   hexStringToBooleanArray(sigOff, bolOff);
 
-  randomSeed(analogRead(A0));
 
   if (DEBUG)
   {
     Serial.begin(9600); 
     Serial.println("Startup");
   }
+
+  randomSeed(analogRead(A0));
+
+  if (DEBUG_BUTTON_TEST)
+    return;
 
   // READ DELAY TIME
 
@@ -227,11 +231,8 @@ void sendOff()
   }      
 }
 
+void playloop() {
 
-void loop() {
-  // testButtons();
-  // return;
- 
   // Check buttons
   int pinctrl = digitalRead(BUTTON_CONTROL_PIN);
   int pinoff = digitalRead(BUTTON_OFF_PIN);
@@ -275,10 +276,17 @@ void loop() {
 
   }
 
-
   delay(1000UL);
   counter++;
 
+}
 
+
+void loop() {
+
+  if (DEBUG_BUTTON_TEST)
+    testButtons();
+  else
+    playloop();
 
 }
