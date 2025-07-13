@@ -2,8 +2,8 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include <Arduino.h>
-
 #include "config.h"
+
 
 /* 
 // example configuration for reference. Store usually in config.h
@@ -28,32 +28,99 @@ char *sigOn    = ""; // secret
 char *sigOff   = ""; // secret
 */
 
-bool bolInit[24];
-bool bolOn[144];
-bool bolOff[144];
+bool* bolInit = new bool[24];
+bool* bolOn = new bool[144];
+bool* bolOff = new bool[144];
 
 int counter;
 int timetowait;
 
 
+
+class Signal
+{
+private:
+
+  unsigned char hex2Bin(char hex) {
+    if (isdigit(hex))
+      return hex - '0';
+    else
+      return hex - 'A' + 10;
+  }  
+
+  void hexStr2BoolArray(const char* hexString, bool booleanArray[]) {
+    for (int i = 0; i < strlen(hexString); i++){
+      unsigned char byte = hex2Bin(hexString[i]);
+      for (int j = 1; j <= 4; j++){
+        booleanArray[i*4+4-j] = ((byte & 1) == 1) ? true : false;
+        byte >>= 1;
+      }
+    }
+  }  
+
+public:
+  bool* bInit;
+  bool* bOn;
+  bool* bOff;
+  int pulseBit;
+  int pulseRepeats;
+  int delay;
+  bool enabled;
+
+  
+  init(const char* cInit, const char* cOn, const char* cOff, const int iBit, const int iDelay, const int iRpt, const bool bEnb) {
+
+      pulseBit = iBit;
+      pulseRepeats = iRpt;
+      enabled = bEnb;
+      delay = iDelay;
+
+      bInit = new bool[sizeof(cInit)-1];
+      bOn = new bool[sizeof(cOn)-1];
+      bOff = new bool[sizeof(cOff)-1];
+
+      hexStr2BoolArray(cInit, bInit);
+      hexStr2BoolArray(cOn, bOn);
+      hexStr2BoolArray(cOff, bOff);
+  }
+};
+
+Signal signals[NUMBER_OF_SIGNALS];
+
 void setup() {                
 
   // CONFIGURATION
+  if (DEBUG)
+  {
+    Serial.begin(9600); 
+    Serial.println("*** Startup ***");
+    Serial.print("Pins Setup: ");
+  }
 
   pinMode(FS1000A_DATA_PIN, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
   pinMode(BUTTON_CONTROL_PIN, INPUT);
   pinMode(BUTTON_OFF_PIN, INPUT);
 
+  if (DEBUG)
+  {
+    Serial.println("OK");
+    Serial.print("Signals setup: ");
+  }
+
+  // Get the signal definitions from config.h secret file
+  signals[0].init(SIG0);
+  signals[1].init(SIG1);
+  signals[2].init(SIG1);
+
   hexStringToBooleanArray(sigInit, bolInit);
   hexStringToBooleanArray(sigOn, bolOn);
   hexStringToBooleanArray(sigOff, bolOff);
 
-
   if (DEBUG)
   {
-    Serial.begin(9600); 
-    Serial.println("Startup");
+    Serial.println("OK");
+    Serial.print("Finalize preparation and blink: ");
   }
 
   randomSeed(analogRead(A0));
@@ -70,6 +137,13 @@ void setup() {
   blink(); 
 
   counter = 0;
+
+  if (DEBUG)
+  {
+    Serial.println("OK");
+    Serial.println("*** Configuration period start ***");
+  }
+
   while (counter < READ_PERIOD)
   {
     int i = digitalRead(BUTTON_CONTROL_PIN);
@@ -119,7 +193,6 @@ void setup() {
 
 }
 
-
 // Helper functions
 unsigned char hexToBinary(char hex) {
   if (isdigit(hex))
@@ -161,6 +234,32 @@ void trWait(int size)
     delayMicroseconds(PULSE_BIT);
 }
 
+
+// Send signal
+void ntrSend(bool* bol, int size, int pulse)
+{
+
+  for(int i = 0; i<size; i++){
+    if (bol[i])
+      digitalWrite(FS1000A_DATA_PIN, HIGH);
+    else
+      digitalWrite(FS1000A_DATA_PIN, LOW);
+
+    delayMicroseconds(pulse);
+  }
+}
+
+// Wait given number of samples
+void ntrWait(int size, int pulse)
+{
+  // Pause
+  digitalWrite(FS1000A_DATA_PIN, LOW);
+  for(int i = 0; i<size; i++)
+    delayMicroseconds(pulse);
+}
+
+
+
 void blink()
 {
   for (int i = 0; i<5; i++)
@@ -174,21 +273,21 @@ void blink()
 
 void testButtons()
 {
-
   int i = digitalRead(BUTTON_CONTROL_PIN);
   int j = digitalRead(BUTTON_OFF_PIN);
 
   Serial.print("Control: ");
   if (i == HIGH)
-    Serial.print("HIGH");
+    Serial.print("HI");
   else
-    Serial.print("LOW");
-  Serial.print(" Off: ");
+    Serial.print("LO");
+  Serial.print(" | Off: ");
 
   if (j == HIGH)
-    Serial.println("HIGH");
+    Serial.println("HI");
   else
-    Serial.println("LOW") ;
+    Serial.println("LO") ;
+
 
   delay(200);
 
@@ -199,8 +298,6 @@ void testButtons()
 void sendOn(int intprog)
 {
   blink();
-
-
     
   for (int j = 0; j <= intprog ;j++)
   {      
@@ -212,6 +309,26 @@ void sendOn(int intprog)
     for (int i=0; i<PULSE_REPEATS; i++ ){
       trSend(bolOn, sizeof(bolOn));
       delayMicroseconds(6000);
+    }      
+  }
+
+  blink();
+}
+
+void sendOn(int intprog, Signal signal)
+{
+  blink();
+    
+  for (int j = 0; j <= intprog ;j++)
+  {      
+    blink();
+
+    ntrSend(signal.bInit, sizeof(signal.bInit), signal.pulseBit);
+    delayMicroseconds(signal.delay);
+
+    for (int i=0; i<signal.pulseRepeats; i++ ){
+      ntrSend(signal.bOn, sizeof(signal.bOn), signal.pulseBit);
+      delayMicroseconds(signal.delay);
     }      
   }
 
@@ -231,14 +348,25 @@ void sendOff()
   }      
 }
 
+
+void sendOff(Signal signal)
+{
+  blink();
+
+  ntrSend(signal.bInit, sizeof(signal.bInit), signal.pulseBit);
+  delayMicroseconds(signal.delay);
+
+  for (int i=0; i<signal.pulseRepeats; i++ ){
+    ntrSend(signal.bOff, sizeof(signal.bOff), signal.pulseBit);
+    delayMicroseconds(signal.delay);
+  }      
+}
+
 void playloop() {
 
   // Check buttons
   int pinctrl = digitalRead(BUTTON_CONTROL_PIN);
   int pinoff = digitalRead(BUTTON_OFF_PIN);
-
-  // sendOn(1);
-  // return;
 
   // Check the time
   if (counter >= timetowait || pinctrl == HIGH)
