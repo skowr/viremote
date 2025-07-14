@@ -28,9 +28,14 @@ char *sigOn    = ""; // secret
 char *sigOff   = ""; // secret
 */
 
-bool* bolInit = new bool[24];
-bool* bolOn = new bool[144];
-bool* bolOff = new bool[144];
+// bool* bolInit = new bool[24];
+// bool* bolOn = new bool[144];
+// bool* bolOff = new bool[144];
+
+bool bolInit[24];
+bool bolOn[144];
+bool bolOff[144];
+
 
 int counter;
 int timetowait;
@@ -59,9 +64,14 @@ private:
   }  
 
 public:
-  bool* bInit;
-  bool* bOn;
-  bool* bOff;
+  bool* bInitSignal;
+  bool* bOnSignal;
+  bool* bOffSignal;
+
+  int initSignalSize;
+  int onSignalSize;
+  int offSignalSize;
+
   int pulseBit;
   int pulseRepeats;
   int delay;
@@ -75,13 +85,17 @@ public:
       enabled = bEnb;
       delay = iDelay;
 
-      bInit = new bool[sizeof(cInit)-1];
-      bOn = new bool[sizeof(cOn)-1];
-      bOff = new bool[sizeof(cOff)-1];
+      initSignalSize = strlen(cInit) * 4;
+      onSignalSize = strlen(cOn) * 4;
+      offSignalSize = strlen(cOff) * 4;
 
-      hexStr2BoolArray(cInit, bInit);
-      hexStr2BoolArray(cOn, bOn);
-      hexStr2BoolArray(cOff, bOff);
+      bInitSignal = new bool[initSignalSize];
+      bOnSignal = new bool[onSignalSize];
+      bOffSignal = new bool[offSignalSize];
+
+      hexStr2BoolArray(cInit, bInitSignal);
+      hexStr2BoolArray(cOn, bOnSignal);
+      hexStr2BoolArray(cOff, bOffSignal);
   }
 };
 
@@ -111,7 +125,10 @@ void setup() {
   // Get the signal definitions from config.h secret file
   signals[0].init(SIG0);
   signals[1].init(SIG1);
-  signals[2].init(SIG1);
+  signals[2].init(SIG2);
+
+  Serial.print("TEST onSignalSize: ");
+  Serial.println(signals[1].onSignalSize);
 
   hexStringToBooleanArray(sigInit, bolInit);
   hexStringToBooleanArray(sigOn, bolOn);
@@ -167,7 +184,10 @@ void setup() {
   
   blink();
 
-  timetowait = random(10,60*factor);
+  // timetowait = random(10,60*factor);
+  timetowait = 2;
+
+
   intprog = random(8);
 
   if (DEBUG){    
@@ -211,6 +231,7 @@ void hexStringToBooleanArray(const char* hexString, bool booleanArray[]) {
   }
 }
 
+/*
 // Send signal
 void trSend(bool* bol, int size)
 {
@@ -233,7 +254,7 @@ void trWait(int size)
   for(int i = 0; i<size; i++)
     delayMicroseconds(PULSE_BIT);
 }
-
+*/
 
 // Send signal
 void ntrSend(bool* bol, int size, int pulse)
@@ -247,6 +268,7 @@ void ntrSend(bool* bol, int size, int pulse)
 
     delayMicroseconds(pulse);
   }
+  digitalWrite(FS1000A_DATA_PIN, LOW);
 }
 
 // Wait given number of samples
@@ -294,10 +316,13 @@ void testButtons()
   blink();
 }
 
-
+/*
 void sendOn(int intprog)
 {
   blink();
+
+  Serial.print("Send On 1: ");
+  Serial.println(intprog);
     
   for (int j = 0; j <= intprog ;j++)
   {      
@@ -312,29 +337,35 @@ void sendOn(int intprog)
     }      
   }
 
+  Serial.println("Send On END");
+
+
   blink();
 }
-
+*/
 void sendOn(int intprog, Signal signal)
 {
   blink();
+
+  Serial.print("Send On 2: ");
+  Serial.println(intprog);
     
   for (int j = 0; j <= intprog ;j++)
   {      
     blink();
 
-    ntrSend(signal.bInit, sizeof(signal.bInit), signal.pulseBit);
+    ntrSend(signal.bInitSignal, signal.initSignalSize, signal.pulseBit);
     delayMicroseconds(signal.delay);
 
     for (int i=0; i<signal.pulseRepeats; i++ ){
-      ntrSend(signal.bOn, sizeof(signal.bOn), signal.pulseBit);
+      ntrSend(signal.bOnSignal, signal.onSignalSize, signal.pulseBit);
       delayMicroseconds(signal.delay);
     }      
   }
 
   blink();
 }
-
+/*
 void sendOff()
 {
   blink();
@@ -347,21 +378,22 @@ void sendOff()
     delayMicroseconds(6000);
   }      
 }
-
+*/
 
 void sendOff(Signal signal)
 {
   blink();
 
-  ntrSend(signal.bInit, sizeof(signal.bInit), signal.pulseBit);
+  ntrSend(signal.bInitSignal, signal.initSignalSize, signal.pulseBit);
   delayMicroseconds(signal.delay);
 
   for (int i=0; i<signal.pulseRepeats; i++ ){
-    ntrSend(signal.bOff, sizeof(signal.bOff), signal.pulseBit);
+    ntrSend(signal.bOffSignal, signal.offSignalSize, signal.pulseBit);
     delayMicroseconds(signal.delay);
   }      
 }
 
+/*
 void playloop() {
 
   // Check buttons
@@ -372,7 +404,7 @@ void playloop() {
   if (counter >= timetowait || pinctrl == HIGH)
   {
     if (DEBUG){
-      Serial.println("Change");
+      Serial.println("Change PlayLoop1");
     }
     int intprog = random(8);
 
@@ -408,6 +440,77 @@ void playloop() {
   counter++;
 
 }
+*/
+
+void playloop2() {
+
+  // Check buttons
+  int pinctrl = digitalRead(BUTTON_CONTROL_PIN);
+  int pinoff = digitalRead(BUTTON_OFF_PIN);
+
+  // Check the time
+  if (counter >= timetowait || pinctrl == HIGH)
+  {
+    if (DEBUG){
+      Serial.println("Change");
+    }
+    int intprog = random(8);
+
+/*
+    if (timetowait < 25)
+      sendOff(signals[0]);
+    else
+      sendOn(intprog, signals[0]);
+  */
+
+    if (timetowait < 25)
+    {
+      for (int i=0; i<NUMBER_OF_SIGNALS; i++)
+      {
+        if (signals[i].enabled)
+          sendOff(signals[i]);
+      }
+    }
+    else {
+      for (int i=0; i<NUMBER_OF_SIGNALS; i++)
+      {
+        if (signals[i].enabled)
+          sendOn(intprog, signals[i]);
+      }
+    }
+
+    counter = 0;
+    timetowait = random(5,60);
+    // timetowait = random(2,5);
+    if (DEBUG){    
+      Serial.print("Play! Waiting ");
+      Serial.print(timetowait);
+      Serial.println(" seconds");
+      Serial.print("Program jump: ");
+      Serial.println(intprog);      
+    }
+  }
+
+
+  if (pinoff == HIGH)
+  {
+    for (int i=0; i<NUMBER_OF_SIGNALS; i++)
+    {
+      if (signals[i].enabled)
+        sendOff(signals[i]);
+    }
+    if (DEBUG){
+      Serial.println("Turn Off");      
+    }
+    delay(3000UL);
+
+  }
+
+  delay(1000UL);
+  counter++;
+
+}
+
 
 
 void loop() {
@@ -415,6 +518,6 @@ void loop() {
   if (DEBUG_BUTTON_TEST)
     testButtons();
   else
-    playloop();
+    playloop2();
 
 }
