@@ -24,7 +24,7 @@
 #define  DEBUG_BUTTON_TEST 0
 
 char *sigInit  = ""; // secret
-char *sigOn    = ""; // secret
+char *sigOn    = ""; // secret            
 char *sigOff   = ""; // secret
 */
 
@@ -127,9 +127,6 @@ void setup() {
   signals[1].init(SIG1);
   signals[2].init(SIG2);
 
-  Serial.print("TEST onSignalSize: ");
-  Serial.println(signals[1].onSignalSize);
-
   hexStringToBooleanArray(sigInit, bolInit);
   hexStringToBooleanArray(sigOn, bolOn);
   hexStringToBooleanArray(sigOff, bolOff);
@@ -137,7 +134,7 @@ void setup() {
   if (DEBUG)
   {
     Serial.println("OK");
-    Serial.print("Finalize preparation and blink: ");
+    Serial.print("Finalize: ");
   }
 
   randomSeed(analogRead(A0));
@@ -184,9 +181,8 @@ void setup() {
   
   blink();
 
-  // timetowait = random(10,60*factor);
-  timetowait = 2;
-
+  timetowait = random(10,60*factor);
+  // timetowait = 2;
 
   intprog = random(8);
 
@@ -347,9 +343,6 @@ void sendOn(int intprog, Signal signal)
 {
   blink();
 
-  Serial.print("Send On 2: ");
-  Serial.println(intprog);
-    
   for (int j = 0; j <= intprog ;j++)
   {      
     blink();
@@ -454,14 +447,15 @@ void playloop2() {
     if (DEBUG){
       Serial.println("Change");
     }
+  
     int intprog = random(8);
 
-/*
+
     if (timetowait < 25)
       sendOff(signals[0]);
     else
       sendOn(intprog, signals[0]);
-  */
+
 
     if (timetowait < 25)
     {
@@ -477,6 +471,12 @@ void playloop2() {
         if (signals[i].enabled)
           sendOn(intprog, signals[i]);
       }
+    }
+
+    for (int i=0; i<NUMBER_OF_SIGNALS; i++)
+    {
+      if (signals[i].enabled)
+        sendOn(intprog, signals[i]);
     }
 
     counter = 0;
