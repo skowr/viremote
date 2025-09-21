@@ -12,6 +12,11 @@ int timetowait;
 
 // Signal* signals[NUMBER_OF_SIGNALS];
 
+Signal* signals[NUMBER_OF_SIGNALS];
+
+// int i;
+
+
 void display_freeram() {
   Serial.print(F("- SRAM left: "));
   Serial.println(freeRam());
@@ -52,21 +57,39 @@ void setup() {
 
   // #define  SIG0 "ffffff", "f9f3e60c1f307cc18307cf983e60affffffc", "f983e60c1f3e60c1f307cf98307caffffffc", 188, 6000, 3, true#define  SIG0 "ffffff", "f9f3e60c1f307cc18307cf983e60affffffc", "f983e60c1f3e60c1f307cf98307caffffffc", 188, 6000, 3, true
   
-  InitSignals();
+  // InitSignals();
+
+  // int i;
+  // for(i = 0; i<NUMBER_OF_SIGNALS; i++)
+  signals[0] = new Signal(SIG0Init, SIG0On, SIG0Chg, SIG0Off, SSS0);
+  signals[1] = new Signal(SIG1Init, SIG1On, SIG1Chg, SIG1Off, SSS1);
+  signals[2] = new Signal(SIG2Init, SIG2On, SIG2Chg, SIG2Off, SSS2);
+  signals[2] = new Signal(SIG3Init, SIG3On, SIG3Chg, SIG3Off, SSS2);
+
+  //  signals[0]->bInitSignal = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+  
+
+
+
 
   // display_freeram();
-  signals[0]->init("ffffff", "", "f9f3e60c1f307cc18307cf983e60affffffc", "f983e60c1f3e60c1f307cf98307caffffffc", 188, 6000, 3, true);
+  // signals[0]->init("ffffff", "", "f9f3e60c1f307cc18307cf983e60affffffc", "f983e60c1f3e60c1f307cf98307caffffffc", 188, 6000, 3, true);
   // display_freeram();
-  signals[1]->init("", "", "36cb6cb", "32cb2cb", 860, 5160, 30, true);
+  // signals[1]->init("", "", "36cb6cb", "32cb2cb", 860, 5160, 30, true);
   // display_freeram();
-  signals[2]->init("", "" ,"365b65b", "325b25b", 860, 4300, 30, false);
+  // signals[2]->init("", "" ,"365b65b", "325b25b", 860, 4300, 30, false);
   // display_freeram();
   
+
+  /*
   signals[3]->init(""
     , "70707070707070707ff1ce70739ce0e7070738383839c1c1c1c1c1c1c1c1c1c0e0"
     , "e0e0e0e0e0e0e0ffe39ce0e0e73838383839c1c1c1ce0e739c1ce739c0e0e0"
     , "7070707070707070707ff1ce70739ce0e7070738383839c1c1c1c1c1c1c1c1c1c0"
     , 150, 0, 20, true);
+*/
+
+
 
 
   // signals[1]->init(F(""), F(""), F("36cb6cb"), F("32cb2cb"), 860, 5160, 30, false);

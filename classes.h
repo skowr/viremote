@@ -48,6 +48,25 @@ public:
     isOn = false;
   }
 
+  Signal(const bool* bInit, const bool* bOn, const bool* bChg, const bool* bOff, const int iBit, const int iDelay, const int iRpt, const bool bEnb) {
+  
+    Signal();
+
+
+    bInitSignal = bInit;
+    bChgSignal = bChg;
+    bOnSignal = bOn;
+    bOffSignal = bOff;
+    
+    
+    Serial.println("CHG: ");
+    Serial.print(bChgSignal[2]);
+    
+
+
+    
+  }
+
 
   init(const char* cInit, const char* cOn, const char* cChg, const char* cOff, const int iBit, const int iDelay, const int iRpt, const bool bEnb) {
 
