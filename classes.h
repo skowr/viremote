@@ -1,5 +1,3 @@
-
-
 class Signal
 {
 private:
@@ -48,21 +46,40 @@ public:
     isOn = false;
   }
 
-  Signal(const bool* bInit, const bool* bOn, const bool* bChg, const bool* bOff, const int iBit, const int iDelay, const int iRpt, const bool bEnb) {
+  Signal(const bool* bInit, 
+      int bInitSize,
+      const bool* bOn,
+      const int bOnSize,
+      const bool* bChg,
+      const int bChgSize,
+      const bool* bOff,
+      const int bOffSize,
+      const int iBit,
+      const int iDelay,
+      const int iRpt,
+      const bool bEnb) {
   
     Signal();
 
+    pulseBit = iBit;
+    pulseRepeats = iRpt;
+    enabled = bEnb;
+    delay = iDelay;
 
     bInitSignal = bInit;
     bChgSignal = bChg;
     bOnSignal = bOn;
     bOffSignal = bOff;
     
-    
-    Serial.println("CHG: ");
-    Serial.print(bChgSignal[2]);
-    
+    initSignalSize = bInitSize;
+    onSignalSize = bOnSize;
+    chgSignalSize = bChgSize;
+    offSignalSize = bOffSize;
 
+    if (initSignalSize>0) 
+      initSignal = true;    
+    if (onSignalSize>0)
+      onSignal = true;
 
     
   }

@@ -61,10 +61,10 @@ void setup() {
 
   // int i;
   // for(i = 0; i<NUMBER_OF_SIGNALS; i++)
-  signals[0] = new Signal(SIG0Init, SIG0On, SIG0Chg, SIG0Off, SSS0);
-  signals[1] = new Signal(SIG1Init, SIG1On, SIG1Chg, SIG1Off, SSS1);
-  signals[2] = new Signal(SIG2Init, SIG2On, SIG2Chg, SIG2Off, SSS2);
-  signals[2] = new Signal(SIG3Init, SIG3On, SIG3Chg, SIG3Off, SSS2);
+  signals[0] = new Signal(SIG0Init, SIG0InitSize, SIG0On, SIG0OnSize, SIG0Chg, SIG0ChgSize, SIG0Off, SIG0OffSize, SSS0);
+  signals[1] = new Signal(SIG1Init, SIG1InitSize, SIG1On, SIG1OnSize, SIG1Chg, SIG1ChgSize, SIG1Off, SIG1OffSize, SSS1);
+  signals[2] = new Signal(SIG2Init, SIG2InitSize, SIG2On, SIG2OnSize, SIG2Chg, SIG2ChgSize, SIG2Off, SIG2OffSize, SSS2);
+  signals[3] = new Signal(SIG3Init, SIG3InitSize, SIG3On, SIG3OnSize, SIG3Chg, SIG3ChgSize, SIG3Off, SIG3OffSize, SSS3);
 
   //  signals[0]->bInitSignal = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
   
@@ -282,6 +282,12 @@ void testButtons()
 
 void sendSignal(int intprog, Signal* signal)
 {
+
+  Serial.print(F("PLAY, size: "));
+  Serial.println(signal->chgSignalSize);
+  Serial.print(F(" bits: "));
+  Serial.println(signal->pulseBit);
+
   if (signal->enabled) {
 
     if (signal->onSignal)
