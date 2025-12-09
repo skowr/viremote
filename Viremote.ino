@@ -10,11 +10,7 @@
 int counter;
 int timetowait;
 
-// Signal* signals[NUMBER_OF_SIGNALS];
-
 Signal* signals[NUMBER_OF_SIGNALS];
-
-// int i;
 
 
 void display_freeram() {
@@ -50,71 +46,16 @@ void setup() {
     Serial.print(F("Signals setup: "));
   }
 
-
-
-
-  // signals[0]->init(F("ffffff"), F(""), F("f9f3e60c1f307cc18307cf983e60affffffc"), F("f983e60c1f3e60c1f307cf98307caffffffc"), 188, 6000, 3, false);
-
-  // #define  SIG0 "ffffff", "f9f3e60c1f307cc18307cf983e60affffffc", "f983e60c1f3e60c1f307cf98307caffffffc", 188, 6000, 3, true#define  SIG0 "ffffff", "f9f3e60c1f307cc18307cf983e60affffffc", "f983e60c1f3e60c1f307cf98307caffffffc", 188, 6000, 3, true
   
-  // InitSignals();
-
-  // int i;
-  // for(i = 0; i<NUMBER_OF_SIGNALS; i++)
   signals[0] = new Signal(SIG0Init, SIG0InitSize, SIG0On, SIG0OnSize, SIG0Chg, SIG0ChgSize, SIG0Off, SIG0OffSize, SSS0);
   signals[1] = new Signal(SIG1Init, SIG1InitSize, SIG1On, SIG1OnSize, SIG1Chg, SIG1ChgSize, SIG1Off, SIG1OffSize, SSS1);
   signals[2] = new Signal(SIG2Init, SIG2InitSize, SIG2On, SIG2OnSize, SIG2Chg, SIG2ChgSize, SIG2Off, SIG2OffSize, SSS2);
   signals[3] = new Signal(SIG3Init, SIG3InitSize, SIG3On, SIG3OnSize, SIG3Chg, SIG3ChgSize, SIG3Off, SIG3OffSize, SSS3);
 
-  //  signals[0]->bInitSignal = {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
-  
+  signals[3]->bChgSignal2 = SIG3Chg2;
+  signals[3]->signalToggling = true;
+  signals[3]->chgSignalSize2 = SIG3Chg2Size;
 
-
-
-
-  // display_freeram();
-  // signals[0]->init("ffffff", "", "f9f3e60c1f307cc18307cf983e60affffffc", "f983e60c1f3e60c1f307cf98307caffffffc", 188, 6000, 3, true);
-  // display_freeram();
-  // signals[1]->init("", "", "36cb6cb", "32cb2cb", 860, 5160, 30, true);
-  // display_freeram();
-  // signals[2]->init("", "" ,"365b65b", "325b25b", 860, 4300, 30, false);
-  // display_freeram();
-  
-
-  /*
-  signals[3]->init(""
-    , "70707070707070707ff1ce70739ce0e7070738383839c1c1c1c1c1c1c1c1c1c0e0"
-    , "e0e0e0e0e0e0e0ffe39ce0e0e73838383839c1c1c1ce0e739c1ce739c0e0e0"
-    , "7070707070707070707ff1ce70739ce0e7070738383839c1c1c1c1c1c1c1c1c1c0"
-    , 150, 0, 20, true);
-*/
-
-
-
-
-  // signals[1]->init(F(""), F(""), F("36cb6cb"), F("32cb2cb"), 860, 5160, 30, false);
-  // signals[2]->init("", "" ,"365b65b", "325b25b", 860, 4300, 30, false);
-  // signals[3]->init(""
-  //   , "70707070707070707ff1ce70739ce0e7070738383839c1c1c1c1c1c1c1c1c1c0e0"
-  //   , "1c1c1c1c1c1c1c1c1c1ffc73839ce70739c1c1ce0e0e0e70739c1ce739c1c0"
-  //   , "1c1c1c1c1c1c1c1c1c1ffc739ce0e739c1c1c1ce0e0e0e70707070738383839c0"
-  //   , 150, 0, 10, true);
-
-/*
-  const char* str1[] PROGMEM = {"70707070707070707ff1ce70739ce0e7070738383839c1c1c1c1c1c1c1c1c1c0e0"};
-  const char* str2[] PROGMEM = {"1c1c1c1c1c1c1c1c1c1ffc73839ce70739c1c1ce0e0e0e70739c1ce739c1c0"};
-  const char* str3[] PROGMEM = {"1c1c1c1c1c1c1c1c1c1ffc739ce0e739c1c1c1ce0e0e0e70707070738383839c0"};
-
-  signals[3]->init(""
-    , str1
-    , str2
-    , str3
-    , 150, 0, 10, true);
-*/
-
-  // const char s1[] PROGMEM = "70707070707070707ff1ce70739ce0e7070738383839c1c1c1c1c1c1c1c1c1c0e0";
-
-  // signals[3]->init(s1, s1, s1, 150, 0, 10, true);
 
   // Get the signal definitions from config.h secret file
 
@@ -234,17 +175,6 @@ void ntrSend(bool* bol, int size, int pulse)
   digitalWrite(FS1000A_DATA_PIN, LOW);
 }
 
-// Wait given number of samples
-/*
-void ntrWait(int size, int pulse)
-{
-  // Pause
-  digitalWrite(FS1000A_DATA_PIN, LOW);
-  for(int i = 0; i<size; i++)
-    delayMicroseconds(pulse);
-}
-*/
-
 
 void blink()
 {
@@ -283,10 +213,10 @@ void testButtons()
 void sendSignal(int intprog, Signal* signal)
 {
 
-  Serial.print(F("PLAY, size: "));
-  Serial.println(signal->chgSignalSize);
-  Serial.print(F(" bits: "));
-  Serial.println(signal->pulseBit);
+  // Serial.print(F("PLAY, size: "));
+  // Serial.println(signal->chgSignalSize);
+  // Serial.print(F(" bits: "));
+  // Serial.println(signal->pulseBit);
 
   if (signal->enabled) {
 
@@ -308,8 +238,14 @@ void sendSignal(int intprog, Signal* signal)
       }
 
       for (int i=0; i<signal->pulseRepeats; i++ ){
-        ntrSend(signal->bChgSignal, signal->chgSignalSize, signal->pulseBit);
-        delayMicroseconds(signal->delay);
+        if (signal->signalToggling) {
+          i % 2 == 0 ? ntrSend(signal->bChgSignal, signal->chgSignalSize, signal->pulseBit) : ntrSend(signal->bChgSignal2, signal->chgSignalSize2, signal->pulseBit);
+          delayMicroseconds(signal->delay);  
+        }
+        else {
+          ntrSend(signal->bChgSignal, signal->chgSignalSize, signal->pulseBit);
+          delayMicroseconds(signal->delay);
+        }
       }
       delayMicroseconds(5000);
     }
@@ -400,7 +336,6 @@ void playloop() {
   counter++;
 
 }
-
 
 
 void loop() {
